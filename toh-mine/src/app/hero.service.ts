@@ -23,7 +23,7 @@ export class HeroService {
     private http: HttpClient) { }
 
   private log(message : String) {
-    this.messageService.add('HeroService : ${message}');
+    this.messageService.add(`HeroService : ${message}`);
   }
 
   addHero(hero : Hero) : Observable<Hero> {
@@ -39,7 +39,7 @@ export class HeroService {
     const id = typeof hero === 'number' ? hero : hero.id;
     const url = `${this.heroesUrl}/${id}`;
 
-    this.messageService.add(`HeroService: removing a hero id=${hero.id}`);
+    this.messageService.add(`HeroService: removing a hero id=${id}`);
 
     return this.http.delete<Hero>(url, httpOptions)
       .pipe(
@@ -71,6 +71,17 @@ export class HeroService {
       tap(_ => this.log(`updating hero id=${hero.id}`)),
       catchError(this.handleError<Hero>(`updateHero id=${hero.id}`))
     );
+  }
+
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) {
+      return of([]);
+    }
+    return this.http.get<Hero[]>(`${this.heroesUrl}/?name=${term}`)
+      .pipe(
+        tap(_ => this.log(`found heroes matching "${term}"`)),
+        catchError( this.handleError<Hero[]>('searchHeroes', []))
+      );
   }
   
   /**
